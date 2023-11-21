@@ -1,6 +1,18 @@
-# Read Fixed length text file
+from mysql.connector import connect
 import pandas as pd
 
+
+def mysql_connection(host, user, passwd, database=None):
+    connection = connect(
+        host=host,
+        user=user,
+        passwd=passwd,
+        database=database
+    )
+    return connection
+
+
+# Read Fixed length text file
 def ler_cotacoes_historicas_b3(file_path_read):
     cols = ['tp_registro',
             'dt_pregao',
@@ -29,12 +41,21 @@ def ler_cotacoes_historicas_b3(file_path_read):
             'nr_distribuicao',
             ]
     df = pd.read_fwf(file_path_read,
-                     header=None,widths=[2,8,2,12,3,12,10,3,4,13,13,13,13,13,13,13,5,18,13,1,8,7,13,12,3],
+                     header=None,
+                     widths=[2, 8, 2, 12, 3, 12, 10, 3, 4, 13, 13, 13, 13, 13, 13, 13, 5, 18, 13, 1, 8, 7, 13, 12, 3],
                      names=cols,
                      skiprows=1)
     return df
 
+
 file_path_read = 'D:\\Flavio GDrive\\Flavio Cloud\\Investimentos\\Bovespa\\COTAHIST_A2023.TXT'
 
-df = ler_cotacoes_historicas_b3(file_path_read)
-print (df)
+# df = ler_cotacoes_historicas_b3(file_path_read)
+#print(df)
+
+connection = mysql_connection('localhost', 'fuyemura', 'fuyemura@96')
+
+#df.to_sql('clientes3', connection, if_exists='append', index=False)
+
+
+connection.close()
