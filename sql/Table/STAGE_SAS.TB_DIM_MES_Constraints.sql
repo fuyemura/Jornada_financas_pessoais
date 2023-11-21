@@ -1,0 +1,1 @@
+ALTER TABLE stage_sas.tb_dim_mes ADD CONSTRAINT pk_dim_mes PRIMARY KEY ( id_mes );

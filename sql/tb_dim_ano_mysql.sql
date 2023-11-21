@@ -10,6 +10,4 @@ CREATE TABLE gold.tb_dim_ano (
 
 ALTER TABLE gold.tb_dim_ano COMMENT 'Dimensão de tempo - ANO';
 
-CREATE UNIQUE INDEX pk_dim_ano ON gold.tb_dim_ano ( id_ano ASC );
-
 ALTER TABLE gold.tb_dim_ano ADD CONSTRAINT pk_dim_ano PRIMARY KEY ( id_ano );

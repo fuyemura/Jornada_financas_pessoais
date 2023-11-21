@@ -27,6 +27,4 @@ CREATE INDEX idx_dim_dia_dt_dia ON gold.tb_dim_dia (dt_dia ASC );
 
 CREATE INDEX idx_dim_dia_reports ON gold.tb_dim_dia (id_dia ASC, dt_dia ASC );
 
-CREATE UNIQUE INDEX pk_dim_dia ON gold.tb_dim_dia (id_dia ASC );
-
 ALTER TABLE gold.tb_dim_dia ADD CONSTRAINT pk_dim_dia PRIMARY KEY ( id_dia );

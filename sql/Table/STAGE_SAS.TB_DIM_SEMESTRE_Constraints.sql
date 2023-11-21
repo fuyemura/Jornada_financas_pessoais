@@ -1,0 +1,1 @@
+ALTER TABLE stage_sas.tb_dim_semestre ADD CONSTRAINT pk_dim_semestre PRIMARY KEY ( id_semestre );
