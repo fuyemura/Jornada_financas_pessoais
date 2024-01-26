@@ -6,6 +6,6 @@ def conexao_mysql(schema):
     :param = password
     :param = servidor
     :param = database"""
-    return create_engine(f'mysql+mysqlconnector://lucasoliveira:Lucas1234@localhost/{schema}')
+    return create_engine(f'mysql+mysqlconnector://financasp:Financasp#321@localhost/{schema}')
 
 
