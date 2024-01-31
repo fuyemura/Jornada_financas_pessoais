@@ -13,7 +13,7 @@ cotahist['preco_melhor_oferta_venda'] = cotahist['preco_melhor_oferta_venda']/10
 
 # Conexão com o banco de dados na camada "silver":
 engine = conexao_mysql('silver')
-data_frame = cotahist.to_sql(name='cotahist', con=engine, if_exists='replace', index=False)
+data_frame = cotahist.to_sql(name='cotacoes_historicas', con=engine, if_exists='replace', index=False)
 if (data_frame):
     print('\033[1;32mDados gravados com sucesso!\033[m')
 else:
