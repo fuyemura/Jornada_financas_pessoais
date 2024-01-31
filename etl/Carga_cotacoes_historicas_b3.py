@@ -11,6 +11,7 @@ cotahist['preco_ultimo_negocio'] = cotahist['preco_ultimo_negocio']/100
 cotahist['preco_melhor_oferta_compra'] = cotahist['preco_melhor_oferta_compra']/100
 cotahist['preco_melhor_oferta_venda'] = cotahist['preco_melhor_oferta_venda']/100
 
+
 # Conexão com o banco de dados na camada "silver":
 engine = conexao_mysql('silver')
 data_frame = cotahist.to_sql(name='cotacoes_historicas', con=engine, if_exists='replace', index=False)
