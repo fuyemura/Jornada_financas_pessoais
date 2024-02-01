@@ -1,5 +1,8 @@
 import pandas as pd
 from conexao_banco_de_dados import conexao_mysql
+from datetime import date
+
+ano = date.today().year
 posicaocolumn = [(1, 2), (2, 10), (10, 12), (12, 18), (25, 27), (27, 37), (38, 49), (50, 51), (52, 56), (57, 69), (70, 82), (83, 95), (96, 108), (109, 121), (122, 134), (135, 147), (148, 152), (153, 170), (171, 188), (189, 201), (200, 202), (203, 210), (211, 217), (218, 229), (230, 240), (242, 245)]
 namescolumn = ['tipo_registro',
                'data_pregao',
@@ -27,13 +30,12 @@ namescolumn = ['tipo_registro',
                'preco_exercicio_pontos',
                'codigo_papel_sistema',
                'numero_distribuicao_papel']
-df = pd.read_fwf('../data/COTAHIST_A2023.txt', index_col=None, colspecs=posicaocolumn, names=namescolumn, skiprows=1, skipfooter=1)
+df = pd.read_fwf(f'../data/COTAHIST_A{ano}.txt', index_col=None, colspecs=posicaocolumn, names=namescolumn, skiprows=1, skipfooter=1)
 pd.DataFrame(df)
 
 # Conexão com o banco de dados na camada "bronze":
 engine = conexao_mysql('bronze')
 df.to_sql(name='cotahist', con=engine, if_exists='replace', index=False)
-
 
 
 
