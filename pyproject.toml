@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "jornada-financas-pessoais"
+version = "0.1.0"
+description = "Projeto da Jornada de Finanças Pessoais"
+authors = ["fuyemura <fuyemura@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+pandas = "^2.2.0"
+sqlalchemy = "^2.0.25"
+mysql-connector-python = "^8.3.0"
+pyarrow = "^15.0.0"
+pyspark = "^3.5.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
