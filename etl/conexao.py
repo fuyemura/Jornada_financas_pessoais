@@ -1,4 +1,4 @@
-def conectar(database='bronze'):
+def connection(database='bronze'):
     jdbc_url = f"jdbc:mysql://localhost:3306/{database}"
     return jdbc_url
 
