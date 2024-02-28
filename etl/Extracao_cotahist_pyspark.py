@@ -40,7 +40,7 @@ positions = {"tipo_registro": (1, 2),
 			   }
 
 # Caminho do arquivo de entrada
-file_path = f'data/COTAHIST_A{ano}.TXT'
+file_path = r'C:\Users\Lucas\OneDrive\Documentos\projetos_python\Jornada_financas_pessoais\data\COTAHIST_A2024.TXT'
 
 # Lê o arquivo de formato fixo
 df = spark.read.text(file_path)
@@ -56,7 +56,7 @@ df = df.filter(df["tipo_registro"] == "01")
 df = df.drop("value")
 
 # Configurações para conexão com o banco de dados MySQL
-jdbc_url = conectar()
+jdbc_url = connection()
 jdbc_mode = "overwrite"  # Sobrescreve a tabela se ela já existir
 jdbc_properties = properties()
 table = 'cotahist'
@@ -66,6 +66,20 @@ df.write.jdbc(url=jdbc_url, table=table, mode=jdbc_mode, properties=jdbc_propert
 
 # Mostra o DataFrame resultante
 #df.show()
+
+# Ler tabela do MySQL Workbeench em um DataFrame
+df_sql = spark.read\
+.format("jdbc")\
+.option("driver", "com.mysql.cj.jdbc.Driver")\
+.option("url", jdbc_url)\
+.option("query", "SELECT * FROM bronze.cotahist")\
+.option("user", "financasp")\
+.option("password", "Financasp#321")\
+.load()
+
+df_sql.show()
+
+
 
 # Encerra a SparkSession
 spark.stop()
