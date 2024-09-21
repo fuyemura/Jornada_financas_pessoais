@@ -2,9 +2,9 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import substring
 from datetime import date
+from conexao import *
 
 ano = date.today().year
-
 # Inicializa uma SparkSession
 spark = SparkSession.builder \
     .appName("Leitura de Arquivo de Formato Fixo") \
@@ -40,7 +40,7 @@ positions = {"tipo_registro": (1, 2),
 			   }
 
 # Caminho do arquivo de entrada
-file_path = f'data/COTAHIST_A{ano}.TXT'
+file_path = r'C:\Users\Lucas\OneDrive\Documentos\projetos_python\Jornada_financas_pessoais\data\COTAHIST_A2024.TXT'
 
 # Lê o arquivo de formato fixo
 df = spark.read.text(file_path)
@@ -56,19 +56,31 @@ df = df.filter(df["tipo_registro"] == "01")
 df = df.drop("value")
 
 # Configurações para conexão com o banco de dados MySQL
-jdbc_url = "jdbc:mysql://localhost:3306/bronze"
+jdbc_url = connection()
 jdbc_mode = "overwrite"  # Sobrescreve a tabela se ela já existir
-jdbc_properties = {
-    "user": "financasp",
-    "password": "Financasp#321",
-    "driver": "com.mysql.cj.jdbc.Driver"
-}
+jdbc_properties = properties()
+table = 'cotahist'
 
 # Escreve o DataFrame no banco de dados MySQL
-df.write.jdbc(url=jdbc_url, table="cotahist", mode=jdbc_mode, properties=jdbc_properties)
+df.write.jdbc(url=jdbc_url, table=table, mode=jdbc_mode, properties=jdbc_properties)
 
 # Mostra o DataFrame resultante
 #df.show()
 
+# Ler tabela do MySQL Workbeench em um DataFrame
+df_sql = spark.read\
+.format("jdbc")\
+.option("driver", "com.mysql.cj.jdbc.Driver")\
+.option("url", jdbc_url)\
+.option("query", "SELECT * FROM bronze.cotahist")\
+.option("user", "financasp")\
+.option("password", "Financasp#321")\
+.load()
+
+df_sql.show()
+
+
+
 # Encerra a SparkSession
 spark.stop()
+
