@@ -2,7 +2,7 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import substring
 from datetime import date
-from conexao import *
+from conexao_banco_de_dados import *
 
 ano = date.today().year
 # Inicializa uma SparkSession
@@ -40,7 +40,7 @@ positions = {"tipo_registro": (1, 2),
 			   }
 
 # Caminho do arquivo de entrada
-file_path = r'C:\Users\Lucas\OneDrive\Documentos\projetos_python\Jornada_financas_pessoais\data\COTAHIST_A2024.TXT'
+file_path = r'D:\Projetos\Jornada_financas_pessoais\data\COTAHIST_A2024.TXT'
 
 # Lê o arquivo de formato fixo
 df = spark.read.text(file_path)
