@@ -2,9 +2,10 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import substring
 from datetime import date
-from conexao_banco_de_dados import *
+from conexao_bancodedados import *
 
 ano = date.today().year
+
 # Inicializa uma SparkSession
 spark = SparkSession.builder \
     .appName("Leitura de Arquivo de Formato Fixo") \
@@ -55,31 +56,17 @@ df = df.filter(df["tipo_registro"] == "01")
 # Remove a coluna "value" original
 df = df.drop("value")
 
+# Truncar os dados da tabela antes de carregar
+truncate_table('bronze','cotahist')
+
 # Configurações para conexão com o banco de dados MySQL
-jdbc_url = connection()
-jdbc_mode = "overwrite"  # Sobrescreve a tabela se ela já existir
+jdbc_url = connection("bronze")
+jdbc_mode = "append"  # Insere os dados na tabela
 jdbc_properties = properties()
 table = 'cotahist'
 
 # Escreve o DataFrame no banco de dados MySQL
 df.write.jdbc(url=jdbc_url, table=table, mode=jdbc_mode, properties=jdbc_properties)
-
-# Mostra o DataFrame resultante
-#df.show()
-
-# Ler tabela do MySQL Workbeench em um DataFrame
-df_sql = spark.read\
-.format("jdbc")\
-.option("driver", "com.mysql.cj.jdbc.Driver")\
-.option("url", jdbc_url)\
-.option("query", "SELECT * FROM bronze.cotahist")\
-.option("user", "financasp")\
-.option("password", "Financasp#321")\
-.load()
-
-df_sql.show()
-
-
 
 # Encerra a SparkSession
 spark.stop()

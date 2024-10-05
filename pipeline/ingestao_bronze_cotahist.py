@@ -1,5 +1,5 @@
 import pandas as pd
-from conexao_banco_de_dados import conexao_mysql
+from pipeline.conexao_bancodedados import conexao_mysql
 posicaocolumn = [(1, 2), (2, 10), (10, 12), (12, 18), (25, 27), (27, 39), (47, 49), (50, 52), (53, 56), (57, 69), (70, 82), (83, 95), (96, 108), (109, 121), (122, 134), (135, 147), (148, 152), (153, 170), (171, 188), (189, 201), (202, 202), (203, 210), (211, 217), (218, 230), (231, 242), (243, 245)]
 namescolumn = ['tipo_registro',
                'data_pregao',
