@@ -1,4 +1,5 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
+
 def conexao_mysql(schema):
     """Está função é usada para conectar o Pycharm ao banco de dados mysql, que está hospedado no servidor local:
     :param = conector
@@ -16,5 +17,7 @@ def properties(user="financasp", password="Financasp#321", driver="com.mysql.cj.
     jdbc_properties = {"user":user,"password":password,"driver":driver}
     return jdbc_properties
 
-def database_table(table='cotahist'):
-    return table
+def truncate_table(database='bronze', tablename='cotahist'):
+    engine = conexao_mysql(database)
+    with engine.connect() as conexao:
+        conexao.execute(text(f"TRUNCATE TABLE {database}.{tablename}"))

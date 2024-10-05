@@ -1,5 +1,5 @@
 import pandas as pd
-from conexao_banco_de_dados import conexao_mysql
+from pipeline.conexao_bancodedados import conexao_mysql
 # cotahist SQL:
 cotahist = pd.read_sql_query('SELECT*FROM bronze.cotahist', con=conexao_mysql('bronze'))
 

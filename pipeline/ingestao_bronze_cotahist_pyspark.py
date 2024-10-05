@@ -2,7 +2,7 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import substring
 from datetime import date
-from conexao_banco_de_dados import *
+from conexao_bancodedados import *
 
 ano = date.today().year
 
@@ -56,9 +56,12 @@ df = df.filter(df["tipo_registro"] == "01")
 # Remove a coluna "value" original
 df = df.drop("value")
 
+# Truncar os dados da tabela antes de carregar
+truncate_table('bronze','cotahist')
+
 # Configurações para conexão com o banco de dados MySQL
 jdbc_url = connection("bronze")
-jdbc_mode = "overwrite"  # Sobrescreve a tabela se ela já existir
+jdbc_mode = "append"  # Insere os dados na tabela
 jdbc_properties = properties()
 table = 'cotahist'
 
