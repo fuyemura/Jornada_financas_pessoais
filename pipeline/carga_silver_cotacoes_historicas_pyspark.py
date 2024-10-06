@@ -1,5 +1,5 @@
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import to_date, col
+from pyspark.sql.functions import to_date, col, trim
 from pyspark.sql.types import DecimalType
 from conexao_bancodedados import *
 
@@ -19,6 +19,7 @@ df = spark.read.jdbc(url=jdbc_url, table='cotahist', properties=jdbc_properties)
 
 # Transformação dos dados
 df_transformado = df.withColumn("data_pregao", to_date(col("data_pregao"), "yyyyMMdd")) \
+                    .withColumn("codigo_negociacao", trim(col("codigo_negociacao"))) \
                     .withColumn("preco_abertura_papel", col("preco_abertura_papel").cast("float") / 100) \
                     .withColumn("preco_maximo_papel", col("preco_maximo_papel").cast("float") / 100) \
                     .withColumn("preco_minimo_papel", col("preco_minimo_papel").cast("float") / 100) \
