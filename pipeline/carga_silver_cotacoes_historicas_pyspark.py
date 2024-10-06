@@ -6,8 +6,8 @@ from conexao_bancodedados import *
 # Criação da SparkSession
 spark = SparkSession.builder \
     .appName("Leitura e Transformação MySQL") \
-    .config("spark.executor.memory", "4g") \
-    .config("spark.driver.memory", "2g") \
+    .config("spark.executor.memory", "8g") \
+    .config("spark.driver.memory", "4g") \
     .getOrCreate()
 
 # Configurações para conexão com o banco de dados MySQL
