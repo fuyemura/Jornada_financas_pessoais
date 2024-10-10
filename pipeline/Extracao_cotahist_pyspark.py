@@ -56,7 +56,7 @@ df = df.filter(df["tipo_registro"] == "01")
 df = df.drop("value")
 
 # Configurações para conexão com o banco de dados MySQL
-jdbc_url = connection(database="silver")
+jdbc_url = connection(database="bronze")
 jdbc_mode = "overwrite"  # Sobrescreve a tabela se ela já existir
 jdbc_properties = properties()
 table = 'cotacoes_historicas'
@@ -64,8 +64,6 @@ table = 'cotacoes_historicas'
 # Escreve o DataFrame no banco de dados MySQL
 df.write.jdbc(url=jdbc_url, table=table, mode=jdbc_mode, properties=jdbc_properties)
 
-# Mostra o DataFrame resultante
-#df.show()
 
 # Ler tabela do MySQL Workbeench em um DataFrame
 df_sql = spark.read\
