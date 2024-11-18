@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine, text
 
 def conexao_mysql(schema):
-    """Está função é usada para conectar o Pycharm ao banco de dados mysql, que está hospedado no servidor local:
+    """Está função é usada para conectar o código Python ao banco de dados mysql, que está hospedado no servidor local:
     :param = conector
     :param = root
     :param = password
