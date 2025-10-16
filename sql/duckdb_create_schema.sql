@@ -7,12 +7,12 @@ CREATE SCHEMA IF NOT EXISTS silver;
 CREATE SCHEMA IF NOT EXISTS gold;
 
 -- Mapear tabelas Delta na camada Silver
-CREATE OR REPLACE VIEW bronze.cotahist AS
-SELECT * FROM delta_scan('D:/Projetos/Jornada_financas_pessoais/data/delta/bronze/cotahist');
+CREATE OR REPLACE VIEW bronze.raw_cotahist AS
+SELECT * FROM delta_scan('D:/Projetos/Jornada_financas_pessoais/data/delta/bronze/raw_cotahist');
 
 -- Mapear tabelas Delta na camada Silver
-CREATE OR REPLACE VIEW silver.cotacao_historica AS
-SELECT * FROM delta_scan('D:/Projetos/Jornada_financas_pessoais/data/delta/silver/cotacao_historica');
+CREATE OR REPLACE VIEW silver.stg_cotacao_historica AS
+SELECT * FROM delta_scan('D:/Projetos/Jornada_financas_pessoais/data/delta/silver/stg_cotacao_historica');
 
 -- Ver todos os schemas
 SELECT * FROM information_schema.schemata;
