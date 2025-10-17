@@ -14,6 +14,10 @@ SELECT * FROM delta_scan('D:/Projetos/Jornada_financas_pessoais/data/delta/bronz
 CREATE OR REPLACE VIEW silver.stg_cotacao_historica AS
 SELECT * FROM delta_scan('D:/Projetos/Jornada_financas_pessoais/data/delta/silver/stg_cotacao_historica');
 
+-- Mapear tabelas Delta na camada Gold
+CREATE OR REPLACE VIEW gold.dim_ativo_financeiro AS
+SELECT * FROM delta_scan('D:/Projetos/Jornada_financas_pessoais/data/delta/gold/dim_ativo_financeiro');
+
 -- Ver todos os schemas
 SELECT * FROM information_schema.schemata;
 
