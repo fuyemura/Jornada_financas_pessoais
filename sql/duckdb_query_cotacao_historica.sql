@@ -32,3 +32,23 @@ JOIN marcos m
   ON b.data_pregao IN (m.primeiro_dia, m.meio_dia, m.ultimo_dia)
 ORDER BY b.data_pregao;
 
+
+
+
+WITH tmp_max_cotacao AS
+(
+SELECT MAX(dt_pregao) max_dt_pregao
+, cd_negociacao
+FROM silver.stg_cotacao_historica
+GROUP BY cd_negociacao
+)
+SELECT t1.dt_pregao
+, t1.cd_negociacao
+, t1.nm_empresa
+, t1.vl_medio
+FROM silver.stg_cotacao_historica t1
+INNER JOIN tmp_max_cotacao t2
+ON t1.cd_negociacao = t2.cd_negociacao 
+AND t1.dt_pregao = t2.max_dt_pregao
+WHERE t1.cd_negociacao IN ('TRXF11', 'BTLG11', 'TRBL11', 'ALZR11', 'XPML11', 'KNSC11', 'IRDM11', 'AFHI11', 'VGIR11', 'RZTR11', 'VGIA11', 'CPTI11')
+ORDER BY t1.cd_negociacao
