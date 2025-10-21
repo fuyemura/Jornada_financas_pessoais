@@ -2,21 +2,21 @@ import traceback
 
 def connection_mysql(database='bronze'):
     """
-    Função usada para obter a url de conexão do jdbc para o MySQL.
+    Função para obter a url de conexão do jdbc para o MySQL.
     """
     jdbc_url = f"jdbc:mysql://localhost:3306/{database}"
     return jdbc_url
 
 def properties_mysql(user="financasp", password="Financasp#321", driver="com.mysql.cj.jdbc.Driver"):
     """
-    Função usada para obter usuário, senha e driver do jdbc para o MySQL.
+    Função para obter usuário, senha e driver do jdbc para o MySQL.
     """
     jdbc_properties = {"user":user,"password":password,"driver":driver}
     return jdbc_properties
 
 def write_pyspark_mysql(df, table_name, database='bronze', mode='append'):
     """
-    Grava um DataFrame PySpark no MySQL.
+    Função que grava um DataFrame PySpark no MySQL.
     """
     jdbc_url = connection_mysql(database)
     properties = properties_mysql()
