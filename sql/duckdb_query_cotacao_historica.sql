@@ -1,36 +1,37 @@
-WITH base AS (
+WITH tmp_base AS (
     SELECT 
-        data_pregao,
-        codigo_negociacao,
-        preco_medio_papel,
-        DATE_TRUNC('month', data_pregao) AS mes
-    FROM silver.cotacao_historica
-    WHERE codigo_negociacao = 'ITSA4'
+        dt_pregao,
+        cd_ativo,
+        vl_medio,
+        DATE_TRUNC('month', dt_pregao) AS mes
+    FROM gold.fato_cotacao
+    WHERE cd_ativo = 'ITSA4'
 ),
-marcos AS (
+tmp_marcos AS (
     SELECT
         mes,
-        MIN(data_pregao) AS primeiro_dia,
-        MAX(data_pregao) AS ultimo_dia,
-        MIN(data_pregao) 
-            + (CAST((julian(MAX(data_pregao)) - julian(MIN(data_pregao))) / 2 AS INTEGER)) * INTERVAL 1 DAY 
+        MIN(dt_pregao) AS primeiro_dia,
+        MAX(dt_pregao) AS ultimo_dia,
+        MIN(dt_pregao) 
+            + (CAST((julian(MAX(dt_pregao)) - julian(MIN(dt_pregao))) / 2 AS INTEGER)) * INTERVAL 1 DAY 
             AS meio_dia
-    FROM base
+    FROM tmp_base
     GROUP BY mes
 )
 SELECT 
-    b.data_pregao, 
-    b.codigo_negociacao, 
-    b.preco_medio_papel,
+    b.dt_pregao, 
+    b.cd_ativo, 
+    b.vl_medio,
     CASE
-        WHEN b.data_pregao = m.primeiro_dia THEN 'Primeiro dia'
-        WHEN b.data_pregao = m.meio_dia THEN 'Meio do mês'
-        WHEN b.data_pregao = m.ultimo_dia THEN 'Último dia'
+        WHEN b.dt_pregao = m.primeiro_dia THEN 'Primeiro dia'
+        WHEN b.dt_pregao = m.meio_dia THEN 'Meio do mês'
+        WHEN b.dt_pregao = m.ultimo_dia THEN 'Último dia'
     END AS tipo_dia
-FROM base b
-JOIN marcos m
-  ON b.data_pregao IN (m.primeiro_dia, m.meio_dia, m.ultimo_dia)
-ORDER BY b.data_pregao;
+FROM tmp_base b
+JOIN tmp_marcos m
+  ON b.dt_pregao IN (m.primeiro_dia, m.meio_dia, m.ultimo_dia)
+ORDER BY b.dt_pregao
+;
 
 
 
@@ -38,17 +39,18 @@ ORDER BY b.data_pregao;
 WITH tmp_max_cotacao AS
 (
 SELECT MAX(dt_pregao) max_dt_pregao
-, cd_negociacao
-FROM silver.stg_cotacao_historica
-GROUP BY cd_negociacao
+, cd_ativo
+FROM gold.fato_cotacao
+GROUP BY cd_ativo
 )
 SELECT t1.dt_pregao
-, t1.cd_negociacao
+, t1.cd_ativo
 , t1.nm_empresa
 , t1.vl_medio
-FROM silver.stg_cotacao_historica t1
+FROM gold.fato_cotacao t1
 INNER JOIN tmp_max_cotacao t2
-ON t1.cd_negociacao = t2.cd_negociacao 
+ON t1.cd_ativo = t2.cd_ativo
 AND t1.dt_pregao = t2.max_dt_pregao
-WHERE t1.cd_negociacao IN ('TRXF11', 'BTLG11', 'TRBL11', 'ALZR11', 'XPML11', 'KNSC11', 'IRDM11', 'AFHI11', 'VGIR11', 'RZTR11', 'VGIA11', 'CPTI11')
-ORDER BY t1.cd_negociacao
+WHERE t1.cd_ativo IN ('TRXF11', 'BTLG11', 'TRBL11', 'ALZR11', 'XPML11', 'KNSC11', 'IRDM11', 'AFHI11', 'VGIR11', 'RZTR11', 'VGIA11', 'CPTI11')
+ORDER BY t1.cd_ativo
+;
