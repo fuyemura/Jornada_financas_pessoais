@@ -21,6 +21,7 @@ SELECT * FROM delta_scan('D:/Projetos/Jornada_financas_pessoais/data/delta/gold/
 -- Mapear tabelas Delta na camada Gold
 CREATE OR REPLACE VIEW gold.fato_cotacao AS
 SELECT 
+    dt_pregao,
     t1.sk_ativo,
     t2.cd_ativo,
     t2.nm_empresa,
@@ -28,14 +29,13 @@ SELECT
     t2.cd_tipo_mercado,
     t2.ds_tipo_mercado,
     t2.ds_tipo_ativo,
-    dt_pregao,
     vl_abertura,
     vl_minimo,
     vl_maximo,
     vl_medio,
     vl_ultimo_negocio,
-    qt_negocios,
-    qt_titulos,
+    qt_negocio,
+    qt_titulo,
     vl_volume,
     t1.ts_insercao
 FROM delta_scan('D:/Projetos/Jornada_financas_pessoais/data/delta/gold/fato_cotacao') t1
