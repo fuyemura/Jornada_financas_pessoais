@@ -18,7 +18,9 @@ SELECT * FROM delta_scan('D:/Projetos/Jornada_financas_pessoais/data/delta/silve
 CREATE OR REPLACE VIEW gold.dim_ativo_financeiro AS
 SELECT * FROM delta_scan('D:/Projetos/Jornada_financas_pessoais/data/delta/gold/dim_ativo_financeiro');
 
--- Mapear tabelas Delta na camada Gold
+CREATE OR REPLACE VIEW gold.dim_cliente AS
+SELECT * FROM delta_scan('D:/Projetos/Jornada_financas_pessoais/data/delta/gold/dim_cliente');
+
 CREATE OR REPLACE VIEW gold.fato_cotacao AS
 SELECT 
     dt_pregao,
