@@ -11,11 +11,17 @@ CREATE OR REPLACE VIEW bronze.raw_cotahist AS
 SELECT * FROM delta_scan('D:/Projetos/Jornada_financas_pessoais/data/delta/bronze/raw_cotahist');
 
 CREATE OR REPLACE VIEW bronze.raw_cadcliente AS
-SELECT * FROM delta_scan('D:/Projetos/Jornada_financas_pessoais/data/delta/bronze/raw_cad_cliente');
+SELECT * FROM delta_scan('D:/Projetos/Jornada_financas_pessoais/data/delta/bronze/raw_cadcliente');
+
+CREATE OR REPLACE VIEW bronze.raw_controleativo AS
+SELECT * FROM delta_scan('D:/Projetos/Jornada_financas_pessoais/data/delta/bronze/raw_controleativo');
 
 -- Mapear tabelas Delta na camada Silver
 CREATE OR REPLACE VIEW silver.stg_cotacao_historica AS
 SELECT * FROM delta_scan('D:/Projetos/Jornada_financas_pessoais/data/delta/silver/stg_cotacao_historica');
+
+CREATE OR REPLACE VIEW silver.stg_controle_ativo AS
+SELECT * FROM delta_scan('D:/Projetos/Jornada_financas_pessoais/data/delta/silver/stg_controle_ativo');
 
 -- Mapear tabelas Delta na camada Gold
 CREATE OR REPLACE VIEW gold.dim_ativo_financeiro AS
