@@ -6,21 +6,33 @@ CREATE SCHEMA IF NOT EXISTS bronze;
 CREATE SCHEMA IF NOT EXISTS silver;
 CREATE SCHEMA IF NOT EXISTS gold;
 
--- Mapear tabelas Delta na camada Silver
+-- Mapear tabelas Delta na camada Bronze
 CREATE OR REPLACE VIEW bronze.raw_cotahist AS
 SELECT * FROM delta_scan('D:/Projetos/Jornada_financas_pessoais/data/delta/bronze/raw_cotahist');
+
+CREATE OR REPLACE VIEW bronze.raw_cadcliente AS
+SELECT * FROM delta_scan('D:/Projetos/Jornada_financas_pessoais/data/delta/bronze/raw_cadcliente');
+
+CREATE OR REPLACE VIEW bronze.raw_controleativo AS
+SELECT * FROM delta_scan('D:/Projetos/Jornada_financas_pessoais/data/delta/bronze/raw_controleativo');
 
 -- Mapear tabelas Delta na camada Silver
 CREATE OR REPLACE VIEW silver.stg_cotacao_historica AS
 SELECT * FROM delta_scan('D:/Projetos/Jornada_financas_pessoais/data/delta/silver/stg_cotacao_historica');
 
+CREATE OR REPLACE VIEW silver.stg_controle_ativo AS
+SELECT * FROM delta_scan('D:/Projetos/Jornada_financas_pessoais/data/delta/silver/stg_controle_ativo');
+
 -- Mapear tabelas Delta na camada Gold
 CREATE OR REPLACE VIEW gold.dim_ativo_financeiro AS
 SELECT * FROM delta_scan('D:/Projetos/Jornada_financas_pessoais/data/delta/gold/dim_ativo_financeiro');
 
--- Mapear tabelas Delta na camada Gold
+CREATE OR REPLACE VIEW gold.dim_cliente AS
+SELECT * FROM delta_scan('D:/Projetos/Jornada_financas_pessoais/data/delta/gold/dim_cliente');
+
 CREATE OR REPLACE VIEW gold.fato_cotacao AS
 SELECT 
+    dt_pregao,
     t1.sk_ativo,
     t2.cd_ativo,
     t2.nm_empresa,
@@ -28,14 +40,13 @@ SELECT
     t2.cd_tipo_mercado,
     t2.ds_tipo_mercado,
     t2.ds_tipo_ativo,
-    dt_pregao,
     vl_abertura,
     vl_minimo,
     vl_maximo,
     vl_medio,
     vl_ultimo_negocio,
-    qt_negocios,
-    qt_titulos,
+    qt_negocio,
+    qt_titulo,
     vl_volume,
     t1.ts_insercao
 FROM delta_scan('D:/Projetos/Jornada_financas_pessoais/data/delta/gold/fato_cotacao') t1
