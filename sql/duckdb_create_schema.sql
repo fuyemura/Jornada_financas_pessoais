@@ -24,6 +24,9 @@ CREATE OR REPLACE VIEW silver.stg_controle_ativo AS
 SELECT * FROM delta_scan('D:/Projetos/Jornada_financas_pessoais/data/delta/silver/stg_controle_ativo');
 
 -- Mapear tabelas Delta na camada Gold
+CREATE OR REPLACE VIEW gold.dim_tempo AS
+SELECT * FROM delta_scan('D:/Projetos/Jornada_financas_pessoais/data/delta/gold/dim_tempo');
+
 CREATE OR REPLACE VIEW gold.dim_ativo_financeiro AS
 SELECT * FROM delta_scan('D:/Projetos/Jornada_financas_pessoais/data/delta/gold/dim_ativo_financeiro');
 
