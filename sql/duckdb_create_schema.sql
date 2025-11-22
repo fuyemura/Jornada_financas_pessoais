@@ -40,9 +40,6 @@ SELECT
     t2.cd_ativo,
     t2.nm_empresa,
     t2.ds_ativo,
-    t2.cd_tipo_mercado,
-    t2.ds_tipo_mercado,
-    t2.ds_tipo_ativo,
     vl_abertura,
     vl_minimo,
     vl_maximo,
@@ -56,7 +53,27 @@ FROM delta_scan('D:/Projetos/Jornada_financas_pessoais/data/delta/gold/fato_cota
 LEFT JOIN delta_scan('D:/Projetos/Jornada_financas_pessoais/data/delta/gold/dim_ativo_financeiro') t2
 ON t1.sk_ativo = t2.sk_ativo
 
-
+CREATE OR REPLACE VIEW gold.fato_carteira AS
+SELECT 
+    dt_carteira,
+    t1.sk_cliente,
+    t2.cd_cpf_pessoa,
+    t2.nm_cliente,
+    t1.sk_ativo,
+    t3.cd_ativo,
+    t3.nm_empresa,
+    t3.ds_ativo,
+    qt_ativo,
+    vl_ativo,
+    vl_pmedio,
+    vl_investido,
+    vl_carteira,
+    t1.ts_insercao
+FROM delta_scan('D:/Projetos/Jornada_financas_pessoais/data/delta/gold/fato_carteira') t1
+LEFT JOIN delta_scan('D:/Projetos/Jornada_financas_pessoais/data/delta/gold/dim_cliente') t2
+ON t1.sk_cliente = t2.sk_cliente
+LEFT JOIN delta_scan('D:/Projetos/Jornada_financas_pessoais/data/delta/gold/dim_ativo_financeiro') t3
+ON t1.sk_ativo = t3.sk_ativo
 
 -- Ver todos os schemas
 SELECT * FROM information_schema.schemata;
