@@ -1,20 +1,17 @@
 import glob
 import os
-import re
 
-from dagster import asset, MetadataValue, StaticPartitionsDefinition
+from dagster import asset, MaterializeResult, MetadataValue, StaticPartitionsDefinition
 from pyspark.sql import functions as F
 
+from jornada_financas_pessoais.config.paths import SOURCE_PATHS, BRONZE_PATHS
 from jornada_financas_pessoais.utils.cotahist_parser import parse_cotahist
 
-
-SOURCE_PATH = "D:/Projetos/Jornada_financas_pessoais/data/raw"
-BRONZE_PATH = "D:/Projetos/Jornada_financas_pessoais/data/bronze/raw_cotahist"
+SOURCE_PATH = SOURCE_PATHS["cotahist"]
+BRONZE_PATH = BRONZE_PATHS["raw_cotahist"]
 
 # Partições por ano (exemplo inicial)
-cotahist_partitions = StaticPartitionsDefinition(
-    [str(y) for y in range(2017, 2030)]
-)
+cotahist_partitions = StaticPartitionsDefinition([str(y) for y in range(2017, 2026)])
 
 
 @asset(
@@ -34,8 +31,14 @@ def raw_cotahist(context):
 
     if not files:
         context.log.warning(f"Nenhum arquivo encontrado para o ano {ano}")
-        return MetadataValue.json(
-            {"ano": ano, "registros": 0, "status": "sem_dados"}
+        return MaterializeResult(
+            metadata={
+                "info": MetadataValue.json({
+                    "ano": ano,
+                    "registros": 0,
+                    "status": "sem_dados"
+                })
+            }
         )
 
     context.log.info(f"{len(files)} arquivo(s) encontrados para {ano}")
@@ -63,9 +66,13 @@ def raw_cotahist(context):
         .save(BRONZE_PATH)
     )
 
-    return MetadataValue.json({
-        "ano": ano,
-        "arquivos": [os.path.basename(f) for f in files],
-        "registros": total,
-        "destino": BRONZE_PATH
-    })
+    return MaterializeResult(
+        metadata={
+            "processamento": MetadataValue.json({
+                "ano": ano,
+                "arquivos": [os.path.basename(f) for f in files],
+                "registros": total,
+                "destino": BRONZE_PATH
+            })
+        }
+    )
