@@ -1,17 +1,15 @@
 import glob
 import os
 
-from dagster import asset, MaterializeResult, MetadataValue, StaticPartitionsDefinition
+from dagster import asset, MaterializeResult, MetadataValue
 from pyspark.sql import functions as F
 
+from jornada_financas_pessoais.config.partitions import ANO_PARTITIONS
 from jornada_financas_pessoais.config.paths import SOURCE_PATHS, BRONZE_PATHS
 from jornada_financas_pessoais.utils.cotahist_parser import parse_cotahist
 
 SOURCE_PATH = SOURCE_PATHS["cotahist"]
 BRONZE_PATH = BRONZE_PATHS["raw_cotahist"]
-
-# Partições por ano (exemplo inicial)
-cotahist_partitions = StaticPartitionsDefinition([str(y) for y in range(2017, 2026)])
 
 
 @asset(
@@ -20,13 +18,13 @@ cotahist_partitions = StaticPartitionsDefinition([str(y) for y in range(2017, 20
     compute_kind="spark",
     description="Ingestão Bronze da cotação histórica da B3 (COTAHIST)",
     required_resource_keys={"spark"},
-    partitions_def=cotahist_partitions,
+    partitions_def=ANO_PARTITIONS,
 )
 def raw_cotahist(context):
     spark = context.resources.spark
     ano = context.partition_key  # chave da partição
 
-    # 🔎 Busca apenas arquivos do ano da partição
+    # Busca apenas arquivos do ano da partição
     files = glob.glob(f"{SOURCE_PATH}/COTAHIST_A{ano}.TXT")
 
     if not files:
@@ -42,7 +40,9 @@ def raw_cotahist(context):
         )
 
     context.log.info(f"{len(files)} arquivo(s) encontrados para {ano}")
+    context.log.info(f"Leitura do(s) arquivo(s) {files}")
 
+    # Transforma os arquivos de texto em DataFrame, aplicando a partição do ano
     df_raw = (
         spark.read.text(files)
         .withColumn(
@@ -57,6 +57,7 @@ def raw_cotahist(context):
     total = df.count()
     context.log.info(f"{total} registros válidos para {ano}")
 
+    # Gravar no Bronze, garantindo partição por ano
     (
         df.write
         .format("delta")

@@ -1,14 +1,12 @@
-from dagster import asset, AssetKey, MaterializeResult, MetadataValue, StaticPartitionsDefinition
+from dagster import asset, AssetKey, MaterializeResult, MetadataValue
 from pyspark.sql import functions as F
 from pyspark.sql.types import DecimalType, IntegerType
 
+from jornada_financas_pessoais.config.partitions import ANO_PARTITIONS
 from jornada_financas_pessoais.config.paths import BRONZE_PATHS, SILVER_PATHS
 
 BRONZE_PATH = BRONZE_PATHS["raw_cotahist"]
 SILVER_PATH = SILVER_PATHS["stg_cotacao_historica"]
-
-# Partições por ano (mesmo padrão do Bronze)
-silver_partitions = StaticPartitionsDefinition([str(y) for y in range(2017, 2026)])
 
 
 @asset(
@@ -17,26 +15,36 @@ silver_partitions = StaticPartitionsDefinition([str(y) for y in range(2017, 2026
     compute_kind="spark",
     description="Transforma a cotação histórica da Bronze para Silver",
     required_resource_keys={"spark"},
-    partitions_def=silver_partitions,
+    partitions_def=ANO_PARTITIONS,
     deps=[AssetKey(["bronze", "raw_cotahist"])]
 )
 def stg_cotacao_historica(context):
     spark = context.resources.spark
     ano = context.partition_key
 
-    # Leitura do Bronze (partição do ano)
-    delta_path_bronze_ano = f"{BRONZE_PATH}/ano={ano}"
+    # Leitura do Bronze por partição do ano
+    TABLE_BRONZE_PATH_ANO = f"{BRONZE_PATH}/ano={ano}"
     
+    context.log.info(f"Lendo Bronze {TABLE_BRONZE_PATH_ANO}")
+
     try:
-        df_bronze = spark.read.format("delta").load(delta_path_bronze_ano)
+        df_bronze = spark.read.format("delta").load(TABLE_BRONZE_PATH_ANO)
     except Exception as e:
         context.log.warning(f"Nenhum dado encontrado para o ano {ano}: {e}")
-        return MetadataValue.json({"ano": ano, "registros": 0, "status": "sem_dados"})
+        return MaterializeResult(
+            metadata={
+                "processamento": MetadataValue.json({
+                    "ano": ano,
+                    "registros": 0,
+                    "status": "sem dados"
+                })
+            }
+        )
 
     total_registros = df_bronze.count()
     context.log.info(f"{total_registros} registros encontrados na Bronze para {ano}")
 
-    # --- Transformações ---
+    # Transformações para Silver
     df_silver = df_bronze.select(
         F.col("tipo_registro").cast("string").alias("tp_registro"),
         F.to_date(F.col("data_pregao"), "yyyyMMdd").alias("dt_pregao"),
@@ -69,7 +77,7 @@ def stg_cotacao_historica(context):
         F.current_timestamp().alias("ts_insercao")
     )
 
-    # --- Gravação na Silver ---
+    # Gravação na Silver, garantindo partição por ano
     (
     df_silver.write.format("delta")
         .mode("overwrite")

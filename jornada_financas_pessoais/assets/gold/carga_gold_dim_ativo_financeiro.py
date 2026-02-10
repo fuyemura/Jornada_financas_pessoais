@@ -19,13 +19,19 @@ GOLD_PATH = GOLD_PATHS["dim_ativo_financeiro"]
 def dim_ativo_financeiro(context):
     spark = context.resources.spark
 
-    context.log.info("Lendo staging de cotação histórica")
+    # Leitura Silver (toda a tabela, pois precisamos de todos os ativos para a dimensão)
+    context.log.info(f"Lendo Silver {SILVER_PATH}")
+    
     df_stg = spark.read.format("delta").load(SILVER_PATH)
 
+    context.log.info(f"{df_stg.count()} registros encontrados na Silver")
+
+    # Transformações para construir a dimensão
     df_dim = build_dim_ativo_financeiro(df_stg)
 
     delta_table = DeltaTable.forPath(spark, GOLD_PATH)
 
+    #  Upsert Dimensão (SCD Type 1)
     (
         delta_table.alias("target")
         .merge(

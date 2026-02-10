@@ -13,5 +13,6 @@ SILVER_PATHS = {
 }
 
 GOLD_PATHS = {
-    "dim_ativo_financeiro": f"{BASE_DELTA_PATH}/gold/dim_ativo_financeiro"
+    "dim_ativo_financeiro": f"{BASE_DELTA_PATH}/gold/dim_ativo_financeiro",
+    "fato_cotacao": f"{BASE_DELTA_PATH}/gold/fato_cotacao",
 }
