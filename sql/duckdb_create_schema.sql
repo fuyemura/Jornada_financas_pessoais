@@ -49,8 +49,8 @@ SELECT
     qt_titulo,
     vl_volume,
     t1.ts_insercao
-FROM delta_scan('D:/Projetos/Jornada_financas_pessoais/data/delta/gold/fato_cotacao') t1
-LEFT JOIN delta_scan('D:/Projetos/Jornada_financas_pessoais/data/delta/gold/dim_ativo_financeiro') t2
+FROM delta_scan('D:/Projetos/Jornada_financas_pessoais/data/gold/fato_cotacao') t1
+LEFT JOIN delta_scan('D:/Projetos/Jornada_financas_pessoais/data/gold/dim_ativo_financeiro') t2
 ON t1.sk_ativo = t2.sk_ativo
 
 CREATE OR REPLACE VIEW gold.fato_carteira AS

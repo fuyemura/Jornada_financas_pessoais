@@ -22,15 +22,18 @@ def stg_cotacao_historica(context):
     spark = context.resources.spark
     ano = context.partition_key
 
-    # Leitura do Bronze por partição do ano
-    TABLE_BRONZE_PATH_ANO = f"{BRONZE_PATH}/ano={ano}"
-    
-    context.log.info(f"Lendo Bronze {TABLE_BRONZE_PATH_ANO}")
+    context.log.info(f"Lendo Bronze {BRONZE_PATH} para o ano {ano}")
 
-    try:
-        df_bronze = spark.read.format("delta").load(TABLE_BRONZE_PATH_ANO)
-    except Exception as e:
-        context.log.warning(f"Nenhum dado encontrado para o ano {ano}: {e}")
+    df_bronze = (
+        spark.read
+        .format("delta")
+        .load(BRONZE_PATH)      # Caminho base da tabela, sem a partição
+        .where(f"ano = {ano}")  # Filtra a partição usando predicado
+    )
+
+    # Verifica se há dados para o ano especificado
+    if df_bronze.isEmpty():
+        context.log.warning(f"Nenhum dado encontrado para o ano {ano}")
         return MaterializeResult(
             metadata={
                 "processamento": MetadataValue.json({
@@ -40,7 +43,7 @@ def stg_cotacao_historica(context):
                 })
             }
         )
-
+    
     total_registros = df_bronze.count()
     context.log.info(f"{total_registros} registros encontrados na Bronze para {ano}")
 
@@ -81,6 +84,7 @@ def stg_cotacao_historica(context):
     (
     df_silver.write.format("delta")
         .mode("overwrite")
+        .option("replaceWhere", f"ds_ano = {ano}")
         .partitionBy("ds_ano")
         .option("overwriteSchema", "false")
         .save(SILVER_PATH)

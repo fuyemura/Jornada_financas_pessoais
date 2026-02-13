@@ -55,14 +55,15 @@ def raw_cotahist(context):
     df = parse_cotahist(df_raw)
 
     total = df.count()
-    context.log.info(f"{total} registros válidos para {ano}")
+    context.log.info(f"{total} registros encontrados para {ano}")
 
     # Gravar no Bronze, garantindo partição por ano
     (
         df.write
         .format("delta")
-        .mode("overwrite")               # idempotência
-        .partitionBy("ano")              # partição física
+        .mode("overwrite")
+        .option("replaceWhere", f"ano = {ano}")
+        .partitionBy("ano")
         .option("overwriteSchema", "false")
         .save(BRONZE_PATH)
     )

@@ -17,6 +17,7 @@ FATO_PATH = GOLD_PATHS["fato_cotacao"]
     required_resource_keys={"spark"},
     partitions_def=ANO_PARTITIONS,
     deps=[AssetKey(["silver", "stg_cotacao_historica"]), AssetKey(["gold", "dim_ativo_financeiro"])],
+    op_tags={"dagster/max_retries": "2"},
 )
 def fato_cotacao(context):
     spark = context.resources.spark
@@ -31,17 +32,18 @@ def fato_cotacao(context):
         spark.read.format("delta")
         .load(SILVER_PATH)
         .filter(F.col("ds_ano") == ano)
-        .filter(F.col("tp_mercado") == "010")
     )
 
     context.log.info(f"Lendo Dimensão {DIM_PATH}")
 
     df_dim = spark.read.format("delta").load(DIM_PATH)
 
-    context.log.info(f"{df_stg.count()} registros na Silver para o ano {ano}")
-    context.log.info(f"{df_dim.count()} registros na Dimensão")
+    context.log.info(f"{df_stg.count()} registros encontrados na Silver para o ano {ano}")
+    context.log.info(f"{df_dim.count()} registros encontrados na Dimensão")
 
     # --- Transformação ---
+    df_stg = df_stg.filter(F.col("tp_mercado") == "010")
+    
     df_fato = (
         df_stg.alias("stg")
         .join(
@@ -67,10 +69,14 @@ def fato_cotacao(context):
 
     total_registros = df_fato.count()
 
+    if total_registros == 0:
+        raise Exception(f"Nenhum registro processado para o ano {ano}")
+
     # Gravação idempotente por partição do ano, garantindo que reprocessamentos não causem duplicidade
     (
         df_fato.write.format("delta")
         .mode("overwrite")
+        .option("replaceWhere", f"ds_ano = {ano}")
         .partitionBy("ds_ano")
         .save(FATO_PATH)
     )
