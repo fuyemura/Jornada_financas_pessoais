@@ -6,6 +6,7 @@ from pyspark.sql import functions as F
 
 from jornada_financas_pessoais.config.partitions import ANO_PARTITIONS
 from jornada_financas_pessoais.config.paths import SOURCE_PATHS, BRONZE_PATHS
+from jornada_financas_pessoais.contracts.cotahist_schema import EXPECTED_COLUMNS, SCHEMA_VERSION
 from jornada_financas_pessoais.utils.cotahist_parser import parse_cotahist
 
 SOURCE_PATH = SOURCE_PATHS["cotahist"]
@@ -42,7 +43,7 @@ def raw_cotahist(context):
     context.log.info(f"{len(files)} arquivo(s) encontrados para {ano}")
     context.log.info(f"Leitura do(s) arquivo(s) {files}")
 
-    # Transforma os arquivos de texto em DataFrame, aplicando a partição do ano
+    # Leitura dos arquivos de texto e transformação em DataFrame, aplicando a partição do ano
     df_raw = (
         spark.read.text(files)
         .withColumn(
@@ -52,7 +53,18 @@ def raw_cotahist(context):
         .withColumn("ano", F.lit(ano))  # coluna de partição
     )
 
-    df = parse_cotahist(df_raw)
+    # Parse do layout específico do COTAHIST para extrair as colunas corretas
+    try:
+        df = parse_cotahist(df_raw)
+    except Exception as e:
+        context.log.error(f"Erro no parse do COTAHIST: {e}")
+        raise
+
+    # Validacao Contrato
+    missing_columns = EXPECTED_COLUMNS - set(df.columns)
+
+    if missing_columns:
+        raise ValueError(f"Colunas ausentes no dataset Bronze: {missing_columns}")
 
     total = df.count()
     context.log.info(f"{total} registros encontrados para {ano}")
@@ -68,12 +80,16 @@ def raw_cotahist(context):
         .save(BRONZE_PATH)
     )
 
+    context.log.info(f"Bronze processada com sucesso para {ano}")
+    
     return MaterializeResult(
         metadata={
             "processamento": MetadataValue.json({
                 "ano": ano,
                 "arquivos": [os.path.basename(f) for f in files],
                 "registros": total,
+                "schema_version": SCHEMA_VERSION,
+                "colunas": list(df.columns),
                 "destino": BRONZE_PATH
             })
         }
