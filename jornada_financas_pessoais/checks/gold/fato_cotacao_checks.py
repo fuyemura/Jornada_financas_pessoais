@@ -12,7 +12,7 @@ FATO_PATH = GOLD_PATHS["fato_cotacao"]
     required_resource_keys={"spark"},
     partitions_def=ANO_PARTITIONS,
 )
-def check_sk_ativo_valida(context):
+def fato_cotacao_sk_ativo_valida(context):
     spark = context.resources.spark
     ano = context.partition_key
 
