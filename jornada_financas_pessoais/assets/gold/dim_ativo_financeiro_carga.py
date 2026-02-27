@@ -36,36 +36,36 @@ def dim_ativo_financeiro(context):
         delta_table.alias("target")
         .merge(
             df_dim.alias("source"),
-            "target.sk_ativo = source.sk_ativo"
+            "target.id_ativo_financeiro = source.id_ativo_financeiro"
         )
         .whenMatchedUpdate(
             condition="""
-                coalesce(target.ds_ativo, '') <> coalesce(source.ds_ativo, '') OR
-                coalesce(target.cd_tipo_mercado, '') <> coalesce(source.cd_tipo_mercado, '') OR
-                coalesce(target.ds_tipo_mercado, '') <> coalesce(source.ds_tipo_mercado, '') OR
-                coalesce(target.cd_isin, '') <> coalesce(source.cd_isin, '') OR
-                coalesce(target.ds_tipo_ativo, '') <> coalesce(source.ds_tipo_ativo, '')
+                coalesce(target.descricao_ativo, '') <> coalesce(source.descricao_ativo, '') OR
+                coalesce(target.codigo_tipo_mercado, '') <> coalesce(source.codigo_tipo_mercado, '') OR
+                coalesce(target.descricao_tipo_mercado, '') <> coalesce(source.descricao_tipo_mercado, '') OR
+                coalesce(target.codigo_isin, '') <> coalesce(source.codigo_isin, '') OR
+                coalesce(target.tipo_ativo, '') <> coalesce(source.tipo_ativo, '')
             """,
             set={
-                "ds_ativo": "source.ds_ativo",
-                "cd_tipo_mercado": "source.cd_tipo_mercado",
-                "ds_tipo_mercado": "source.ds_tipo_mercado",
-                "cd_isin": "source.cd_isin",
-                "ds_tipo_ativo": "source.ds_tipo_ativo",
-                "ts_atualizacao": "current_timestamp()"
+                "descricao_ativo": "source.descricao_ativo",
+                "codigo_tipo_mercado": "source.codigo_tipo_mercado",
+                "descricao_tipo_mercado": "source.descricao_tipo_mercado",
+                "codigo_isin": "source.codigo_isin",
+                "tipo_ativo": "source.tipo_ativo",
+                "atualizado_em": "current_timestamp()"
             }
         )
         .whenNotMatchedInsert(values={
-            "sk_ativo": "source.sk_ativo",
-            "cd_ativo": "source.cd_ativo",
-            "nm_empresa": "source.nm_empresa",
-            "ds_ativo": "source.ds_ativo",
-            "cd_tipo_mercado": "source.cd_tipo_mercado",
-            "ds_tipo_mercado": "source.ds_tipo_mercado",
-            "cd_isin": "source.cd_isin",
-            "ds_tipo_ativo": "source.ds_tipo_ativo",
-            "ts_insercao": "current_timestamp()",
-            "ts_atualizacao": "null"
+            "id_ativo_financeiro": "source.id_ativo_financeiro",
+            "codigo_ativo": "source.codigo_ativo",
+            "nome_empresa": "source.nome_empresa",
+            "descricao_ativo": "source.descricao_ativo",
+            "codigo_tipo_mercado": "source.codigo_tipo_mercado",
+            "descricao_tipo_mercado": "source.descricao_tipo_mercado",
+            "codigo_isin": "source.codigo_isin",
+            "tipo_ativo": "source.tipo_ativo",
+            "criado_em": "current_timestamp()",
+            "atualizado_em": "null"
         })
         .execute()
     )

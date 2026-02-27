@@ -1,11 +1,16 @@
 import glob
 import os
 
-from dagster import asset, MaterializeResult, MetadataValue
+from dagster import (
+    asset,
+    MaterializeResult,
+    MetadataValue,
+)
 from pyspark.sql import functions as F
 
 from jornada_financas_pessoais.config.partitions import ANO_PARTITIONS
 from jornada_financas_pessoais.config.paths import SOURCE_PATHS, BRONZE_PATHS
+from jornada_financas_pessoais.contracts.cotahist_schema import EXPECTED_COLUMNS, SCHEMA_VERSION
 from jornada_financas_pessoais.utils.cotahist_parser import parse_cotahist
 
 SOURCE_PATH = SOURCE_PATHS["cotahist"]
@@ -19,6 +24,25 @@ BRONZE_PATH = BRONZE_PATHS["raw_cotahist"]
     description="Ingestão Bronze da cotação histórica da B3 (COTAHIST)",
     required_resource_keys={"spark"},
     partitions_def=ANO_PARTITIONS,
+    op_tags={
+        "dagster/max_retries": 3,
+        "dagster/retry_delay": 60,
+    },
+    tags={
+        "layer": "bronze",
+        "domain": "financeiro",
+        "criticality": "high",
+    },
+    metadata={
+        "owner": "squad-data-eng",
+        "data_source": "B3 COTAHIST",
+        "sla": "Dados do dia anterior disponíveis em D+1",
+        "update_frequency": "Diário após fechamento do mercado (18h)",
+        "data_classification": "Público",
+        "retention_policy": "Permanente (dados históricos)",
+        "documentation": "https://www.b3.com.br/data/files/33/67/B9/50/D84057102C784E47AC094EA8/SeriesHistoricas_Layout.pdf",
+   }
+
 )
 def raw_cotahist(context):
     spark = context.resources.spark
@@ -42,37 +66,53 @@ def raw_cotahist(context):
     context.log.info(f"{len(files)} arquivo(s) encontrados para {ano}")
     context.log.info(f"Leitura do(s) arquivo(s) {files}")
 
-    # Transforma os arquivos de texto em DataFrame, aplicando a partição do ano
+    # Leitura dos arquivos de texto e transformação em DataFrame, aplicando a partição do ano
     df_raw = (
         spark.read.text(files)
         .withColumn(
-            "nome_arquivo",
+            "nome_arquivo_origem",
             F.regexp_extract(F.input_file_name(), r"[^/\\\\]+$", 0)
         )
-        .withColumn("ano", F.lit(ano))  # coluna de partição
+        .withColumn("ano_particao", F.lit(ano))  # coluna de partição
+        .withColumn("criado_em", F.current_timestamp())
     )
 
-    df = parse_cotahist(df_raw)
+    # Parse do layout específico do COTAHIST para extrair as colunas corretas
+    try:
+        df = parse_cotahist(df_raw)
+    except Exception as e:
+        context.log.error(f"Erro no parse do COTAHIST: {e}")
+        raise
+
+    # Validacao Contrato
+    missing_columns = EXPECTED_COLUMNS - set(df.columns)
+    if missing_columns:
+        context.log.warning(f"Colunas ausentes: {missing_columns}")
 
     total = df.count()
-    context.log.info(f"{total} registros válidos para {ano}")
+    context.log.info(f"{total} registros encontrados para {ano}")
 
     # Gravar no Bronze, garantindo partição por ano
     (
         df.write
         .format("delta")
-        .mode("overwrite")               # idempotência
-        .partitionBy("ano")              # partição física
+        .mode("overwrite")
+        .option("replaceWhere", f"ano_particao = {ano}")
+        .partitionBy("ano_particao")
         .option("overwriteSchema", "false")
         .save(BRONZE_PATH)
     )
 
+    context.log.info(f"Bronze processada com sucesso para {ano}")
+    
     return MaterializeResult(
         metadata={
             "processamento": MetadataValue.json({
                 "ano": ano,
                 "arquivos": [os.path.basename(f) for f in files],
                 "registros": total,
+                "schema_version": SCHEMA_VERSION,
+                "colunas": list(df.columns),
                 "destino": BRONZE_PATH
             })
         }

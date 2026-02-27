@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "jornada-financas-pessoais"
+name = "jornada_financas_pessoais"
 version = "0.1.0"
 description = ""
 authors = ["fuyemura <fuyemura@gmail.com>"]

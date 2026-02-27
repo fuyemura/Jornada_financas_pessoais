@@ -1,11 +1,11 @@
 ----------------------------------------------------------------
-Wed Feb 04 18:32:47 BRT 2026:
-Booting Derby version The Apache Software Foundation - Apache Derby - 10.14.2.0 - (1828579): instance a816c00e-019c-2a92-74ef-000001bea970 
+Fri Feb 27 13:31:18 BRT 2026:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.14.2.0 - (1828579): instance a816c00e-019c-9ff0-b38f-0000022fe030 
 on database directory D:\Projetos\DataLake\metastore_db with class loader jdk.internal.loader.ClassLoaders$AppClassLoader@c387f44 
 Loaded from file:/D:/spark/jars/derby-10.14.2.0.jar
 java.vendor=Eclipse Adoptium
 java.runtime.version=17.0.16+8
-user.dir=d:\Projetos\Jornada_financas_pessoais\pipeline
+user.dir=d:\Projetos\jornada_financas_pessoais\pipeline
 os.name=Windows 11
 os.arch=amd64
 os.version=10.0
