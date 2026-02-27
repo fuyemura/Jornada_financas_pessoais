@@ -19,10 +19,10 @@ def fato_cotacao_id_ativo_valida(context):
     df = (
         spark.read.format("delta")
         .load(FATO_PATH)
-        .filter(F.col("ds_ano") == ano)
+        .filter(F.col("ano_particao") == ano)
     )
 
-    invalid = df.filter(F.col("sk_ativo") == -1).count()
+    invalid = df.filter(F.col("id_ativo_financeiro") == -1).count()
 
     return AssetCheckResult(
         passed=invalid == 0,
