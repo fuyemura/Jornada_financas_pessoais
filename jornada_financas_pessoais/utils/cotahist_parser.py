@@ -10,8 +10,9 @@ def parse_cotahist(df_raw):
             ).alias(field)
             for field, (start, end) in COTAHIST_POSITIONS.items()
         ],
-        F.col("nome_arquivo"),
-        F.col("ano")
+        F.col("nome_arquivo_origem"),
+        F.col("ano_particao"),
+        F.col("criado_em")
     )
 
     return df.filter(F.col("tipo_registro") == "01")

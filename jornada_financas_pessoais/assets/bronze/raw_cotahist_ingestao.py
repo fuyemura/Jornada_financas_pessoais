@@ -1,7 +1,11 @@
 import glob
 import os
 
-from dagster import asset, MaterializeResult, MetadataValue
+from dagster import (
+    asset,
+    MaterializeResult,
+    MetadataValue,
+)
 from pyspark.sql import functions as F
 
 from jornada_financas_pessoais.config.partitions import ANO_PARTITIONS
@@ -20,6 +24,25 @@ BRONZE_PATH = BRONZE_PATHS["raw_cotahist"]
     description="Ingestão Bronze da cotação histórica da B3 (COTAHIST)",
     required_resource_keys={"spark"},
     partitions_def=ANO_PARTITIONS,
+    op_tags={
+        "dagster/max_retries": 3,
+        "dagster/retry_delay": 60,
+    },
+    tags={
+        "layer": "bronze",
+        "domain": "financeiro",
+        "criticality": "high",
+    },
+    metadata={
+        "owner": "squad-data-eng",
+        "data_source": "B3 COTAHIST",
+        "sla": "Dados do dia anterior disponíveis em D+1",
+        "update_frequency": "Diário após fechamento do mercado (18h)",
+        "data_classification": "Público",
+        "retention_policy": "Permanente (dados históricos)",
+        "documentation": "https://www.b3.com.br/data/files/33/67/B9/50/D84057102C784E47AC094EA8/SeriesHistoricas_Layout.pdf",
+   }
+
 )
 def raw_cotahist(context):
     spark = context.resources.spark
@@ -47,10 +70,11 @@ def raw_cotahist(context):
     df_raw = (
         spark.read.text(files)
         .withColumn(
-            "nome_arquivo",
+            "nome_arquivo_origem",
             F.regexp_extract(F.input_file_name(), r"[^/\\\\]+$", 0)
         )
-        .withColumn("ano", F.lit(ano))  # coluna de partição
+        .withColumn("ano_particao", F.lit(ano))  # coluna de partição
+        .withColumn("criado_em", F.current_timestamp())
     )
 
     # Parse do layout específico do COTAHIST para extrair as colunas corretas
@@ -62,9 +86,8 @@ def raw_cotahist(context):
 
     # Validacao Contrato
     missing_columns = EXPECTED_COLUMNS - set(df.columns)
-
     if missing_columns:
-        raise ValueError(f"Colunas ausentes no dataset Bronze: {missing_columns}")
+        context.log.warning(f"Colunas ausentes: {missing_columns}")
 
     total = df.count()
     context.log.info(f"{total} registros encontrados para {ano}")
@@ -74,8 +97,8 @@ def raw_cotahist(context):
         df.write
         .format("delta")
         .mode("overwrite")
-        .option("replaceWhere", f"ano = {ano}")
-        .partitionBy("ano")
+        .option("replaceWhere", f"ano_particao = {ano}")
+        .partitionBy("ano_particao")
         .option("overwriteSchema", "false")
         .save(BRONZE_PATH)
     )

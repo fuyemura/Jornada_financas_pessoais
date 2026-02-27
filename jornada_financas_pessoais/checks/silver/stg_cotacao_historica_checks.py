@@ -11,7 +11,7 @@ def carregar_stg_cotacao_historica(context):
         context.resources.spark.read
         .format("delta")
         .load(SILVER_PATH)
-        .filter(F.col("ds_ano") == ano)  # ajuste o nome da coluna de partição
+        .filter(F.col("ano_particao") == ano)  # ajuste o nome da coluna de partição
     )
 
 
@@ -41,7 +41,7 @@ def stg_cotacao_historica_sem_data_nula(context):
     df = carregar_stg_cotacao_historica(context)
 
     nulls = df.filter(
-        F.col("dt_pregao").isNull()
+        F.col("data_pregao").isNull()
     ).count()
 
     return AssetCheckResult(

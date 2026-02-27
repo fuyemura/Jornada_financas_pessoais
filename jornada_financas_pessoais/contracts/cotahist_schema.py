@@ -25,7 +25,9 @@ EXPECTED_COLUMNS = {
     "preco_exercicio_pontos",
     "codigo_papel_sistema",
     "numero_distribuicao_papel",
-    "ano",
+    "nome_arquivo_origem",
+    "ano_particao",
+    "criado_em"
 }
 
 SCHEMA_VERSION = "v1"
