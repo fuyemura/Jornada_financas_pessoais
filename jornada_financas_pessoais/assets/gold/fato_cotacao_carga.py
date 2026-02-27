@@ -31,7 +31,7 @@ def fato_cotacao(context):
     df_stg = (
         spark.read.format("delta")
         .load(SILVER_PATH)
-        .filter(F.col("ds_ano") == ano)
+        .filter(F.col("ano_particao") == ano)
     )
 
     context.log.info(f"Lendo Dimensão {DIM_PATH}")
@@ -42,28 +42,28 @@ def fato_cotacao(context):
     context.log.info(f"{df_dim.count()} registros encontrados na Dimensão")
 
     # --- Transformação ---
-    df_stg = df_stg.filter(F.col("tp_mercado") == "010")
+    df_stg = df_stg.filter(F.col("tipo_mercado") == "010")
     
     df_fato = (
         df_stg.alias("stg")
         .join(
             df_dim.alias("dim"),
-            F.col("stg.cd_negociacao") == F.col("dim.cd_ativo"),
+            F.col("stg.codigo_negociacao") == F.col("dim.codigo_ativo"),
             "left"
         )
         .select(
-            F.col("stg.dt_pregao"),
-            F.coalesce(F.col("sk_ativo"), F.lit(-1)).alias("sk_ativo"),
-            F.col("vl_abertura"),
-            F.col("vl_minimo"),
-            F.col("vl_maximo"),
-            F.col("vl_medio"),
-            F.col("vl_ultimo_negocio"),
-            F.col("qt_negocios_efetuados").alias("qt_negocio"),
-            F.col("qt_total_titulos").alias("qt_titulo"),
-            F.col("vl_total_titulos").alias("vl_volume"),
-            F.lit(ano).alias("ds_ano"),  # partição física
-            F.current_timestamp().alias("ts_insercao"),
+            F.col("stg.data_pregao"),
+            F.coalesce(F.col("id_ativo_financeiro"), F.lit(-1)).alias("id_ativo_financeiro"),
+            F.col("preco_abertura_papel").alias("preco_abertura"),
+            F.col("preco_minimo_papel").alias("preco_minimo"),
+            F.col("preco_maximo_papel").alias("preco_maximo"),
+            F.col("preco_medio_papel").alias("preco_medio"),
+            F.col("preco_ultimo_negocio").alias("preco_ultimo_negocio"),
+            F.col("numero_negocios_efetuados").alias("quantidade_negocio"),
+            F.col("quantidade_total_titulos").alias("quantidade_titulo"),
+            F.col("volume_total_titulos").alias("volume_financeiro"),
+            F.lit(ano).alias("ano_particao"),  # partição física
+            F.current_timestamp().alias("criado_em"),
         )
     )
 
@@ -76,8 +76,8 @@ def fato_cotacao(context):
     (
         df_fato.write.format("delta")
         .mode("overwrite")
-        .option("replaceWhere", f"ds_ano = {ano}")
-        .partitionBy("ds_ano")
+        .option("replaceWhere", f"ano_particao = {ano}")
+        .partitionBy("ano_particao")
         .save(FATO_PATH)
     )
 

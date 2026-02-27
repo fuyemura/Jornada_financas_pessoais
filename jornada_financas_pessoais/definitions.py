@@ -15,7 +15,7 @@ from jornada_financas_pessoais.checks.silver.stg_cotacao_historica_checks import
 )
 from jornada_financas_pessoais.assets.gold.dim_ativo_financeiro_carga import dim_ativo_financeiro
 from jornada_financas_pessoais.assets.gold.fato_cotacao_carga import fato_cotacao
-from jornada_financas_pessoais.checks.gold.fato_cotacao_checks import fato_cotacao_sk_ativo_valida
+from jornada_financas_pessoais.checks.gold.fato_cotacao_checks import fato_cotacao_id_ativo_valida
 from jornada_financas_pessoais.jobs.financas_pessoais import financas_pessoais_job
 
 # Import do Spark resource
@@ -35,7 +35,7 @@ defs = Definitions(
         check_raw_cotahist_sanidade_arquivo,
         stg_cotacao_historica_nao_vazio,
         stg_cotacao_historica_sem_data_nula,
-        fato_cotacao_sk_ativo_valida,
+        fato_cotacao_id_ativo_valida,
         ],
     sensors=[raw_cotahist_file_sensor],
     jobs=[financas_pessoais_job],
