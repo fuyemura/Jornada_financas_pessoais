@@ -35,23 +35,23 @@ SELECT * FROM delta_scan('D:/Projetos/jornada_financas_pessoais/data/delta/gold/
 
 CREATE OR REPLACE VIEW gold.fato_cotacao AS
 SELECT 
-    dt_pregao,
-    t1.sk_ativo,
-    t2.cd_ativo,
-    t2.nm_empresa,
-    t2.ds_ativo,
-    vl_abertura,
-    vl_minimo,
-    vl_maximo,
-    vl_medio,
-    vl_ultimo_negocio,
-    qt_negocio,
-    qt_titulo,
-    vl_volume,
-    t1.ts_insercao
-FROM delta_scan('D:/Projetos/jornada_financas_pessoais/data/delta/gold/fato_cotacao') t1
-LEFT JOIN delta_scan('D:/Projetos/jornada_financas_pessoais/data/delta/gold/dim_ativo_financeiro') t2
-ON t1.sk_ativo = t2.sk_ativo
+    data_pregao,
+    t1.id_ativo_financeiro,
+    t2.codigo_ativo,
+    t2.nome_empresa,
+    t2.descricao_ativo,
+    preco_abertura,
+    preco_minimo,
+    preco_maximo,
+    preco_medio,
+    preco_ultimo_negocio,
+    quantidade_negocio,
+    quantidade_titulo,
+    volume_financeiro,
+    t1.criado_em
+FROM delta_scan('D:/Projetos/jornada_financas_pessoais/data/gold/fato_cotacao') t1
+LEFT JOIN delta_scan('D:/Projetos/jornada_financas_pessoais/data/gold/dim_ativo_financeiro') t2
+ON t1.id_ativo_financeiro = t2.id_ativo_financeiro
 
 CREATE OR REPLACE VIEW gold.fato_carteira AS
 SELECT 
