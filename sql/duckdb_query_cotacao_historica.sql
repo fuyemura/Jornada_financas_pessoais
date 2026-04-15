@@ -1,38 +1,36 @@
 WITH tmp_base AS (
     SELECT 
-        dt_pregao,
-        cd_ativo,
-        vl_medio,
-        DATE_TRUNC('month', dt_pregao) AS mes
+        data_pregao,
+        codigo_ativo,
+        preco_medio,
+        DATE_TRUNC('month', data_pregao) AS mes
     FROM gold.fato_cotacao
-    WHERE cd_ativo = 'ITSA4'
+    WHERE codigo_ativo = 'BBDC4'
 ),
 tmp_marcos AS (
     SELECT
         mes,
-        MIN(dt_pregao) AS primeiro_dia,
-        MAX(dt_pregao) AS ultimo_dia,
-        MIN(dt_pregao) 
-            + (CAST((julian(MAX(dt_pregao)) - julian(MIN(dt_pregao))) / 2 AS INTEGER)) * INTERVAL 1 DAY 
+        MIN(data_pregao) AS primeiro_dia,
+        MAX(data_pregao) AS ultimo_dia,
+        MIN(data_pregao) 
+            + (CAST((julian(MAX(data_pregao)) - julian(MIN(data_pregao))) / 2 AS INTEGER)) * INTERVAL 1 DAY 
             AS meio_dia
     FROM tmp_base
     GROUP BY mes
 )
 SELECT 
-    b.dt_pregao, 
-    b.cd_ativo, 
-    b.vl_medio,
+    b.data_pregao, 
+    b.codigo_ativo, 
+    b.preco_medio,
     CASE
-        WHEN b.dt_pregao = m.primeiro_dia THEN 'Primeiro dia'
-        WHEN b.dt_pregao = m.meio_dia THEN 'Meio do mês'
-        WHEN b.dt_pregao = m.ultimo_dia THEN 'Último dia'
+        WHEN b.data_pregao = m.primeiro_dia THEN 'Primeiro dia'
+        WHEN b.data_pregao = m.meio_dia THEN 'Meio do mês'
+        WHEN b.data_pregao = m.ultimo_dia THEN 'Último dia'
     END AS tipo_dia
 FROM tmp_base b
 JOIN tmp_marcos m
-  ON b.dt_pregao IN (m.primeiro_dia, m.meio_dia, m.ultimo_dia)
-ORDER BY b.dt_pregao
-;
-
+  ON b.data_pregao IN (m.primeiro_dia, m.meio_dia, m.ultimo_dia)
+ORDER BY b.data_pregao;
 
 
 

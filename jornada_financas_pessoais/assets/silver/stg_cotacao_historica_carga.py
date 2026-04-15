@@ -17,10 +17,6 @@ SILVER_PATH = SILVER_PATHS["stg_cotacao_historica"]
     required_resource_keys={"spark"},
     partitions_def=ANO_PARTITIONS,
     deps=[AssetKey(["bronze", "raw_cotahist"])],
-    automation_condition=(
-        AutomationCondition.any_deps_updated()   # alguma dependência (Bronze) foi atualizada
-        & ~AutomationCondition.in_progress()     # não há execução em andamento para essa partição
-)   , 
     op_tags={
         "dagster/max_retries": 3,
         "dagster/retry_delay": 60,

@@ -1,15 +1,14 @@
 import glob
+import hashlib
 import os
 import re
 
 from dagster import (
-    sensor,
-    SensorEvaluationContext,
     RunRequest,
+    SensorEvaluationContext,
     SensorResult,
     SkipReason,
-    AssetKey,
-    asset_sensor,
+    sensor,
 )
 
 from jornada_financas_pessoais.config.paths import SOURCE_PATHS
@@ -18,14 +17,19 @@ SOURCE_PATH = SOURCE_PATHS["cotahist"]
 ARQUIVO_PATTERN = r"COTAHIST_A(\d{4})\.TXT"
 
 
+def hash_arquivo(caminho: str) -> str:
+    with open(caminho, "rb") as f:
+        return hashlib.md5(f.read()).hexdigest()[:8]
+
+
 @sensor(
     name="raw_cotahist_file_sensor",
     description="Monitora o diretório de origem e dispara raw_cotahist ao detectar novo arquivo COTAHIST",
-    asset_selection=[AssetKey(["bronze", "raw_cotahist"])],
+    job_name="financas_pessoais_job",
     minimum_interval_seconds=300,  # verifica a cada 5 minutos
 )
 def raw_cotahist_file_sensor(context: SensorEvaluationContext) -> SensorResult:
-    # Cursor armazena os arquivos já processados (separados por vírgula)
+    # Cursor armazena nome+hash dos arquivos já processados (separados por vírgula)
     arquivos_ja_vistos: set[str] = set(
         context.cursor.split(",") if context.cursor else []
     )
@@ -36,10 +40,13 @@ def raw_cotahist_file_sensor(context: SensorEvaluationContext) -> SensorResult:
 
     for caminho_arquivo in arquivos_encontrados:
         nome_arquivo = os.path.basename(caminho_arquivo)
-        arquivos_atuais.add(nome_arquivo)
+        hash_arq = hash_arquivo(caminho_arquivo)
+        chave = f"{nome_arquivo}_{hash_arq}"  # chave única por nome + conteúdo
 
-        if nome_arquivo in arquivos_ja_vistos:
-            continue  # já foi processado anteriormente
+        arquivos_atuais.add(chave)  # cursor também usa nome + hash
+
+        if chave in arquivos_ja_vistos:
+            continue  # mesmo arquivo e mesmo conteúdo, ignora
 
         match = re.search(ARQUIVO_PATTERN, nome_arquivo)
         if not match:
@@ -47,11 +54,11 @@ def raw_cotahist_file_sensor(context: SensorEvaluationContext) -> SensorResult:
             continue
 
         ano = match.group(1)
-        context.log.info(f"Novo arquivo detectado: {nome_arquivo} → partição {ano}")
+        context.log.info(f"Novo arquivo detectado: {nome_arquivo} (hash: {hash_arq}) → partição {ano}")
 
         novos_run_requests.append(
             RunRequest(
-                run_key=nome_arquivo,       # garante idempotência: mesmo arquivo não dispara duas vezes
+                run_key=chave,  # consistente com o cursor
                 partition_key=ano,
                 tags={
                     "sensor": "cotahist_file_sensor",
@@ -62,17 +69,11 @@ def raw_cotahist_file_sensor(context: SensorEvaluationContext) -> SensorResult:
 
     if not novos_run_requests:
         return SensorResult(
-            skip_reason=SkipReason(
-                f"Nenhum arquivo novo encontrado em {SOURCE_PATH}"
-            ),
-            # Atualiza o cursor mesmo sem novos arquivos, para manter consistência
+            skip_reason=SkipReason(f"Nenhum arquivo novo encontrado em {SOURCE_PATH}"),
             cursor=",".join(arquivos_ja_vistos | arquivos_atuais),
         )
 
-    # Atualiza o cursor com todos os arquivos vistos até agora
-    novo_cursor = ",".join(arquivos_ja_vistos | arquivos_atuais)
-
     return SensorResult(
         run_requests=novos_run_requests,
-        cursor=novo_cursor,
+        cursor=",".join(arquivos_ja_vistos | arquivos_atuais),
     )

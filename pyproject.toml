@@ -17,6 +17,7 @@ delta-spark = "3.1.0"
 openpyxl = "^3.1.5"
 dagster = "^1.12.13"
 dagster-webserver = "^1.12.13"
+tornado = ">=6.5.5"
 
 
 [build-system]

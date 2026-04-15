@@ -17,7 +17,7 @@ FATO_PATH = GOLD_PATHS["fato_cotacao"]
     required_resource_keys={"spark"},
     partitions_def=ANO_PARTITIONS,
     deps=[AssetKey(["silver", "stg_cotacao_historica"]), AssetKey(["gold", "dim_ativo_financeiro"])],
-    op_tags={"dagster/max_retries": "2"},
+    op_tags={"dagster/max_retries": 2},
 )
 def fato_cotacao(context):
     spark = context.resources.spark
